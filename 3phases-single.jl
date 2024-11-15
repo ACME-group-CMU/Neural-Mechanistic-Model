@@ -23,11 +23,12 @@ num_layers = floor(Int, t/0.5)+1
 para_sim = num_steps, num_layers, dt
 phase_names = ["x", "β", "κ"]
 compositions_all = simulate_deposition(flow_rate, T, pe.barriers, para_sim, 0.0022)
+compositions_all = Array(compositions_all)
 display(compositions_all)
 
 inputs = [T, flow_rate]
 input_size = length(inputs)  # Replace with the actual size of `inputs` if it's not a 1D vector
-barrier_size = (n ^ 2 - n) ÷ 2
+barrier_size = (n ^ 2)
 fcoeff_size = 1 #sigmoid 0~1 #
 precoeff_size = 0
 output_size = barrier_size + fcoeff_size + precoeff_size
@@ -46,26 +47,24 @@ function predict_neuralode(p)
 
     # Segregate the output
     pp_barrier = output[1:barrier_size]
-    p_barrier = zeros(n, n)
-    index = 1
-    for i in 1:n
-        for j in i+1:n
-            p_barrier[i, j] = pp_barrier[index]
-            p_barrier[j, i] = pp_barrier[index]
-            index += 1
-        end
-    end
+    p_barrier = reshape(pp_barrier, (n, n))
     p_fcoeff = output[barrier_size+1:barrier_size+fcoeff_size]
     # Amorphous phase goes to zero
     nn_output = (p_barrier, p_fcoeff)
     predicted_composition = simulate_deposition(flow_rate, T, p_barrier, para_sim, p_fcoeff[1])
-    return predicted_composition
+    return Array(predicted_composition)
 end
 
 function loss_neuralode(ans, p)
     pred = predict_neuralode(p)
     loss = sum(abs2, ans .- pred)
     return loss, pred
+end
+
+function loss_neuralode2(p)
+    pred = predict_neuralode(p)
+    loss = sum(abs2, compositions_all .- pred)
+    return loss
 end
 
 pred = predict_neuralode(p)
@@ -103,9 +102,9 @@ callback = function (p, l, pred; doplot = false)
 end
 
 pinit = ComponentArray(p)
-callback(pinit, loss_neuralode(compositions_all,pinit)...)
+callback(pinit, loss_neuralode(compositions_all, pinit)...)
 
-adtype = Optimization.AutoEnzyme()
+adtype = Optimization.AutoZygote()
 
 optf = Optimization.OptimizationFunction((p,_) -> loss_neuralode(compositions_all, p), adtype)
 optprob = Optimization.OptimizationProblem(optf, pinit)
