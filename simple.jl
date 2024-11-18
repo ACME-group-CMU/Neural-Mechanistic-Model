@@ -19,7 +19,7 @@ end
 function simulate(i1, i2, a, b, t_span)
     p2 = exp(-i2 * a)
     p1 = i1 * b
-    p = [p1, p2]
+    p = (p1, p2)
     c0 = [1.0 0.0; 1.0 0.0]
     prob = ODEProblem(evolve!, c0, t_span, p)
     sol = solve(prob, Euler(), save_everystep=false, dt = 0.5)
@@ -67,7 +67,7 @@ function predict_neuralode(u)
         end
     end
 
-    nn_output = (p_a, p_b)
+    nn_output = [p_a, p_b]
     println("nn_output: ", nn_output)
     pred = simulate(i1, i2, p_a, p_b, timespan)
     return Array(pred)
