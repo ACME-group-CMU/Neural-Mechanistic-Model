@@ -41,7 +41,7 @@ ans = simulate(i1, i2, a, b, timespan)
 display(ans)
 
 inputs = [i1, i2]
-input_size = length(inputs)  # Replace with the actual size of `inputs` if it's not a 1D vector
+input_size = length(inputs)
 output_size = length(a) + length(b)
 nn = Chain(
     Dense(input_size, input_size*3*n, tanh),
@@ -53,7 +53,6 @@ u, st = Lux.setup(rng, nn)
 
 function predict_neuralode(u)
     # Get parameters from the neural network
-    inputs = [T, flow_rate]
     output, outst = nn(inputs, u, st)
 
     # Segregate the output
@@ -67,7 +66,7 @@ function predict_neuralode(u)
             index += 1
         end
     end
-    # Amorphous phase goes to zero
+
     nn_output = (p_a, p_b)
     println("nn_output: ", nn_output)
     pred = simulate(i1, i2, p_a, p_b, timespan)
@@ -84,7 +83,7 @@ pred = predict_neuralode(u)
 println("Training data: ", size(ans))
 println("Prediction:", size(pred))
 
-loss, pred = loss_neuralode(ans, p)
+loss, pred = loss_neuralode(ans, u)
 
 println("Loss: ", loss)
 println("Training data: ", Array(ans))
