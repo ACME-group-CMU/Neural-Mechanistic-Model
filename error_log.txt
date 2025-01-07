@@ -1,0 +1,16 @@
+ERROR: LoadError: ArgumentError: Package Lux not found in current path.
+- Run `import Pkg; Pkg.add("Lux")` to install the Lux package.
+Stacktrace:
+ [1] macro expansion
+   @ ./loading.jl:2223 [inlined]
+ [2] macro expansion
+   @ ./lock.jl:273 [inlined]
+ [3] __require(into::Module, mod::Symbol)
+   @ Base ./loading.jl:2198
+ [4] #invoke_in_world#3
+   @ ./essentials.jl:1089 [inlined]
+ [5] invoke_in_world
+   @ ./essentials.jl:1086 [inlined]
+ [6] require(into::Module, mod::Symbol)
+   @ Base ./loading.jl:2191
+in expression starting at /Users/posent/Library/CloudStorage/GoogleDrive-posent@andrew.cmu.edu/My Drive/Ga2O3/Neural-Mechanistic-Model/simple.jl:1

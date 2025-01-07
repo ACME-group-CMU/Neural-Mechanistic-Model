@@ -1,0 +1,30 @@
+Stacktrace:
+  [1] check_ir!(job::GPUCompiler.CompilerJob{…}, errors::Vector{…}, imported::Set{…}, f::LLVM.Function, deletedfns::Vector{…})
+    @ Enzyme.Compiler C:\Users\heyye\.julia\packages\Enzyme\RvNgp\src\compiler\validation.jl:471
+  [2] check_ir!(job::GPUCompiler.CompilerJob{…}, errors::Vector{…}, mod::LLVM.Module)
+    @ Enzyme.Compiler C:\Users\heyye\.julia\packages\Enzyme\RvNgp\src\compiler\validation.jl:400
+  [3] check_ir
+    @ C:\Users\heyye\.julia\packages\Enzyme\RvNgp\src\compiler\validation.jl:181 [inlined]
+  [4] codegen(output::Symbol, job::GPUCompiler.CompilerJob{…}; libraries::Bool, deferred_codegen::Bool, optimize::Bool, toplevel::Bool, strip::Bool, validate::Bool, only_entry::Bool, parent_job::Nothing)
+    @ Enzyme.Compiler C:\Users\heyye\.julia\packages\Enzyme\RvNgp\src\compiler.jl:6151
+  [5] codegen
+    @ C:\Users\heyye\.julia\packages\Enzyme\RvNgp\src\compiler.jl:6072 [inlined]
+  [6] _thunk(job::GPUCompiler.CompilerJob{Enzyme.Compiler.EnzymeTarget, Enzyme.Compiler.EnzymeCompilerParams}, postopt::Bool)
+    @ Enzyme.Compiler C:\Users\heyye\.julia\packages\Enzyme\RvNgp\src\compiler.jl:8375
+  [7] _thunk
+    @ C:\Users\heyye\.julia\packages\Enzyme\RvNgp\src\compiler.jl:8375 [inlined]
+  [8] cached_compilation
+    @ C:\Users\heyye\.julia\packages\Enzyme\RvNgp\src\compiler.jl:8416 [inlined]
+  [9] thunkbase(ctx::LLVM.Context, mi::Core.MethodInstance, ::Val{…}, ::Type{…}, ::Type{…}, tt::Type{…}, ::Val{…}, ::Val{…}, ::Val{…}, ::Val{…}, ::Val{…}, ::Type{…}, ::Val{…}, ::Val{…})
+    @ Enzyme.Compiler C:\Users\heyye\.julia\packages\Enzyme\RvNgp\src\compiler.jl:8548
+ [10] #s2104#19135
+    @ C:\Users\heyye\.julia\packages\Enzyme\RvNgp\src\compiler.jl:8685 [inlined]
+ [11]
+    @ Enzyme.Compiler .\none:0
+ [12] (::Core.GeneratedFunctionStub)(::UInt64, ::LineNumberNode, ::Any, ::Vararg{Any})
+    @ Core .\boot.jl:707
+ [13] runtime_generic_augfwd(activity::Type{…}, runtimeActivity::Val{…}, width::Val{…}, ModifiedBetween::Val{…}, RT::Val{…}, f::Chain{…}, df::Nothing, primal_1::Vector{…}, shadow_1_1::Nothing, primal_2::ComponentVector{…}, shadow_2_1::ComponentVector{…}, primal_3::@NamedTuple{…}, shadow_3_1::Nothing)
+    @ Enzyme.Compiler C:\Users\heyye\.julia\packages\Enzyme\RvNgp\src\rules\jitrules.jl:468
+ [14] predict_neuralode
+    @ g:\My Drive\Ga2O3\Neural-Mechanistic-Model\simple.jl:52
+Some type information was truncated. Use `show(err)` to see complete types.
