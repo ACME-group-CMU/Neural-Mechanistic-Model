@@ -17,8 +17,6 @@ Random.seed!(rng, 12345)
 
 (x, y) = generate_data(rng)
 
-
-
 # Define a simple neural network
 nn = Chain(Dense(1 => 16, relu), Dense(16 => 1))
 
@@ -43,20 +41,22 @@ function loss!(loss, p)
 end
 
 ypred = predict(ps, x)
-# Define the optimization problem
-optf = Optimization.OptimizationFunction((p, _) -> loss(p), Optimization.AutoEnzyme())
-optprob = Optimization.OptimizationProblem(optf, ps)
+
 
 loss = loss_neuralode(ps)
 dloss = zero(loss)
 dloss[1] = 1.0
 dp = make_zero(ps)
 
-Enzyme.autodiff(set_runtime_activity(Reverse), loss!, Duplicated(loss, dloss), Duplicated(ps, dp))
+Enzyme.autodiff(Reverse, loss!, Duplicated(loss, dloss), Duplicated(ps, dp))
 
+"""
+# Define the optimization problem
+optf = Optimization.OptimizationFunction((p, _) -> loss(p), Optimization.AutoEnzyme())
+optprob = Optimization.OptimizationProblem(optf, ps)
 # Solve the optimization problem
-#result = Optimization.solve(optprob, OptimizationOptimisers.Adam(0.01); maxiters = 100)
-
+result = Optimization.solve(optprob, OptimizationOptimisers.Adam(0.01); maxiters = 100)
+"""
 # Print the result
-println("Optimized parameters: ", result.minimizer)
-println("Final loss: ", result.minimum)
+#println("Optimized parameters: ", result.minimizer)
+#println("Final loss: ", result.minimum)

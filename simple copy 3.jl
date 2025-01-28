@@ -6,7 +6,8 @@ using Enzyme
 using Dates
 using Random
 using StaticArrays
-
+using SciMLSensitivity
+using SciMLStructures
 
 using Dates
 timestamp = Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")
@@ -22,9 +23,15 @@ function simulate(i1, i2, a, b, t_span)
     p2 = exp(-i2 * a)
     p1 = i1 * b
     p = (p1, p2)
+    #println("p from function", p)
+    #ismutablescimlstructure(p) = true
+    #println("ismutablescimlstructure(p): ", ismutablescimlstructure(p))
     c0 = [1.0 0.0; 1.0 0.0]
     prob = ODEProblem(evolve!, c0, t_span, p)
-    sol = solve(prob, Euler(), save_everystep=false, dt = 0.5)
+    println(prob.p)
+    #ismutablescimlstructure(prob.p) = true
+    #println("ismutablescimlstructure(prob.p): ", ismutablescimlstructure(prob.p))
+    sol = solve(prob, Tsit5())
     return Array(sol[end])
 end
 
@@ -41,11 +48,14 @@ timespan = (0.0, 5.0)
 p2 = exp(-i2 * a)
 p1 = i1 * b
 p = (p1, p2)
+isscimlstructure(p) = true
+ismutablescimlstructure(p) = true
 c0 = [1.0 0.0; 1.0 0.0]
 prob = ODEProblem(evolve!, c0, timespan, p)
-sol = solve(prob, Euler(), save_everystep=false, dt = 0.5)
+sol = solve(prob, Euler(), dt = 0.5)
 ans = Array(sol[end])
 
+"""
 u0 = prob.u0
 p = prob.p
 tmp2 = Enzyme.make_zero(p)
@@ -65,7 +75,7 @@ tmp3 = zero(u0)
 tmp4 = zero(u0)
 ytmp = u0
 tmp1 = zero(u0)
-"""
+
 Enzyme.autodiff(Enzyme.Reverse, Enzyme.Duplicated(_f, _tmp6),
     Enzyme.Const, Enzyme.Duplicated(tmp3, tmp4),
     Enzyme.Duplicated(ytmp, tmp1),
@@ -73,6 +83,8 @@ Enzyme.autodiff(Enzyme.Reverse, Enzyme.Duplicated(_f, _tmp6),
     Enzyme.Const(t))
 
 """
+
+
 display(ans)
 
 inputs = [i1, i2]
@@ -85,6 +97,22 @@ nn = Chain(
 )
 
 u, st = Lux.setup(rng, nn)
+
+function convert_to_float64(x)
+    if isa(x, AbstractArray)
+        return Float64.(x)
+    elseif isa(x, NamedTuple)
+        return NamedTuple{keys(x)}(convert_to_float64.(values(x)))
+    elseif isa(x, Dict)
+        return Dict(k => convert_to_float64(v) for (k, v) in x)
+    else
+        return x
+    end
+end
+
+# Convert weights to Float64
+#u = convert_to_float64(u)
+
 
 function predict_neuralode(u)
     # Get parameters from the neural network
@@ -119,7 +147,7 @@ function loss!(loss, ans, pinit)
     return nothing
 end
 
-pinit = ComponentArray(u)
+#pinit = ComponentArray(u)
 
 pred = predict_neuralode(u)
 println("Training data: ", size(ans))
@@ -127,10 +155,10 @@ println("Prediction:", size(pred))
 
 loss, pred = loss_neuralode(ans, u)
 dloss = zero(loss)
-dp = zero(pinit)
+dp = make_zero(u)
 dloss[1] = 1.0
 
-Enzyme.autodiff(set_runtime_activity(Reverse), loss!, Duplicated(loss, dloss), Const(ans), Duplicated(pinit, dp))
+Enzyme.autodiff(Reverse, loss!, Duplicated(loss, dloss), Const(ans), Duplicated(u, dp))
 
 
 """
@@ -150,6 +178,7 @@ println("Loss: ", loss)
 println("Training data: ", Array(ans))
 println("Prediction: ", Array(pred))
 """
+
 """
 loss_values = Float64[]
 callback = function (p, l, pred; doplot = false)
