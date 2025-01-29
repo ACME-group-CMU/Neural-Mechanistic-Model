@@ -14,23 +14,23 @@ timestamp = Dates.format(now(), "yyyy-mm-dd_HH-MM-SS")
 
 
 function evolve!(dc, c, p, t)
-    dc .= c * p.p2 * p.p1
+    p3 = reshape(collect(p[1:4]), (2, 2))
+    p4 = p[5]
+    dc .= c .* p4 * p3
 end
 
 function simulate(i1, i2, a, b, t_span)
     p2 = exp(-i2 * a)
     p1 = i1 * b
-    p = (p1, p2)
-    p_named = NamedTuple{(:p1, :p2)}(p)
+    p = (p1[1, 1], p1[1, 2], p1[2, 1], p1[2, 2], p2)
+    p_named = NamedTuple{(:a, :b, :c, :d, :e)}(p)
     p = ComponentArray(p_named)
-    #println("p from function", p)
-    #ismutablescimlstructure(p) = true
-    #println("ismutablescimlstructure(p): ", ismutablescimlstructure(p))
+    println("p after CA", typeof(p))
+    println("ismutablescimlstructure(p): ", ismutablescimlstructure(p))
     c0 = [1.0 0.0; 1.0 0.0]
     prob = ODEProblem(evolve!, c0, t_span, p)
-    #println(prob.p, typeof(prob.p))
-    #ismutablescimlstructure(prob.p) = true
-    #println("ismutablescimlstructure(prob.p): ", ismutablescimlstructure(prob.p))
+    println(prob.p, typeof(prob.p))
+    println("ismutablescimlstructure(prob.p): ", ismutablescimlstructure(prob.p))
     sol = solve(prob, Tsit5())
     return Array(sol[end])
 end
@@ -45,15 +45,13 @@ println("b:", b)
 i1 = 0.18
 i2 = 2.5 
 timespan = (0.0, 5.0)
-p2 = exp(-i2 * a)
-p1 = i1 * b
-p = (p1, p2)
-p_named = NamedTuple{(:p1, :p2)}(p)
-p = ComponentArray(p_named)
+true_p2 = exp(-i2 * a)
+true_p1 = i1 * b
+true_p = (true_p1[1, 1], true_p1[1, 2], true_p1[2, 1], true_p1[2, 2], true_p2)
 #isscimlstructure(p) = true
-#ismutablescimlstructure(p) = true
+ismutablescimlstructure(p) = true
 c0 = [1.0 0.0; 1.0 0.0]
-prob = ODEProblem(evolve!, c0, timespan, p)
+prob = ODEProblem(evolve!, c0, timespan, true_p)
 sol = solve(prob, Euler(), dt = 0.5)
 ans = Array(sol[end])
 
@@ -145,15 +143,15 @@ function loss_neuralode(ans, u)
 end
 
 function loss!(loss, ans, pinit)
-    loss .= loss_neuralode(ans, pinit)[1]
+    loss[1] = loss_neuralode(ans, pinit)[1][1]
     return nothing
 end
 
 #pinit = ComponentArray(u)
 
 pred = predict_neuralode(u)
-#println("Training data: ", size(ans))
-#println("Prediction:", size(pred))
+println("Training data: ", size(ans))
+println("Prediction:", size(pred))
 
 #u = ComponentArray(u)
 loss, pred = loss_neuralode(ans, u)
@@ -162,14 +160,7 @@ dp = make_zero(u)
 dloss[1] = 1.0
 
 
-println("Type of loss: ", typeof(loss))
-println("Type of dloss: ", typeof(dloss))
-println("Type of ans: ", typeof(ans))
-println("Type of u: ", typeof(u))
-println("Type of dp: ", typeof(dp))
-
 Enzyme.autodiff(Reverse, loss!, Duplicated(loss, dloss), Const(ans), Duplicated(u, dp))
-#Enzyme.autodiff(set_runtime_activity(Reverse), Const(loss!), Duplicated(loss, dloss), Const(ans), Duplicated(u, dp))
 
 
 """
