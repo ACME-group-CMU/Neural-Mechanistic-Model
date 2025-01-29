@@ -113,7 +113,7 @@ function convert_to_float64(x)
 end
 
 # Convert weights to Float64
-#u = convert_to_float64(u)
+u = convert_to_float64(u)
 
 
 function predict_neuralode(u)
@@ -162,14 +162,8 @@ dp = make_zero(u)
 dloss[1] = 1.0
 
 
-println("Type of loss: ", typeof(loss))
-println("Type of dloss: ", typeof(dloss))
-println("Type of ans: ", typeof(ans))
-println("Type of u: ", typeof(u))
-println("Type of dp: ", typeof(dp))
-
-Enzyme.autodiff(Reverse, loss!, Duplicated(loss, dloss), Const(ans), Duplicated(u, dp))
-#Enzyme.autodiff(set_runtime_activity(Reverse), Const(loss!), Duplicated(loss, dloss), Const(ans), Duplicated(u, dp))
+#Enzyme.autodiff(Reverse, loss!, Duplicated(loss, dloss), Const(ans), Duplicated(u, dp))
+Enzyme.autodiff(set_runtime_activity(Reverse), Const(loss!), Duplicated(loss, dloss), Const(ans), Duplicated(u, dp))
 
 
 """
