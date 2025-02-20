@@ -6,6 +6,8 @@ using ArrheniusModel
 using Dates
 using Random
 
+Enzyme.API.looseTypeAnalysis!(true)
+
 G_values = [-5.10, -5.97, -5.85]
 Ea_constants = [0.00 1.0 0.36; 1.0 0.00 0.38; 0.36 0.38 0.00]
 gr()
@@ -104,7 +106,7 @@ end
 pinit = ComponentArray(p)
 callback(pinit, loss_neuralode(compositions_all, pinit)...)
 
-adtype = Optimization.AutoZygote()
+adtype = Optimization.AutoEnzyme(; mode=set_runtime_activity(Reverse))
 
 optf = Optimization.OptimizationFunction((p,_) -> loss_neuralode(compositions_all, p), adtype)
 optprob = Optimization.OptimizationProblem(optf, pinit)
