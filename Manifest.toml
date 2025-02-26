@@ -136,9 +136,9 @@ weakdeps = ["SparseArrays"]
     ArrayLayoutsSparseArraysExt = "SparseArrays"
 
 [[deps.ArrheniusModel]]
-deps = ["ChainRules", "DataFrames", "DifferentialEquations", "Enzyme", "LinearAlgebra", "Optim", "OrdinaryDiffEq", "Plots", "SciMLSensitivity", "StaticArrays", "Statistics", "Surrogates"]
-git-tree-sha1 = "01489cc2b89ce9c859bdc112bea2ff5147c97199"
-repo-rev = "main"
+deps = ["ChainRules", "ComponentArrays", "DataFrames", "DifferentialEquations", "Enzyme", "LinearAlgebra", "Optim", "Optimisers", "OrdinaryDiffEq", "Plots", "SciMLSensitivity", "SciMLStructures", "StaticArrays", "Statistics", "Surrogates"]
+git-tree-sha1 = "c4104ad8daac9bfa0fcdb4e66a32b935e959dd02"
+repo-rev = "Julia1.10.8"
 repo-url = "https://github.com/ACME-group-CMU/ArrheniusModel"
 uuid = "0d560a1b-d8fe-44cd-a361-b56b23a9d3a9"
 version = "0.1.0"

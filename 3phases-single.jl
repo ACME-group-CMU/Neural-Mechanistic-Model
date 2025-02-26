@@ -40,12 +40,12 @@ nn = Chain(
     Dense(output_size*2, output_size, sigmoid)
 )
 
-p, st = Lux.setup(rng, nn)
+u, st = Lux.setup(rng, nn)
 
-function predict_neuralode(p)
+function predict_neuralode(u)
     # Get parameters from the neural network
     inputs = [T, flow_rate]
-    output, outst = nn(inputs, p, st)
+    output, outst = nn(inputs, u, st)
 
     # Segregate the output
     pp_barrier = output[1:barrier_size]
@@ -56,24 +56,20 @@ function predict_neuralode(p)
     predicted_composition = simulate_deposition(flow_rate, T, p_barrier, para_sim, p_fcoeff[1])
     return Array(predicted_composition)
 end
-
+"""
 function loss_neuralode(ans, p)
     pred = predict_neuralode(p)
     loss = sum(abs2, ans .- pred)
     return loss, pred
 end
-
-function loss_neuralode2(p)
+"""
+function loss_neuralode(p)
     pred = predict_neuralode(p)
     loss = sum(abs2, compositions_all .- pred)
-    return loss
+    return loss, pred
 end
 
-pred = predict_neuralode(p)
-println("Training data: ", size(compositions_all))
-println("Prediction:", size(pred))
-
-loss, pred = loss_neuralode(compositions_all, p)
+loss, pred = loss_neuralode(u)
 
 println("Loss: ", loss)
 println("Training data: ", Array(compositions_all))
@@ -83,10 +79,10 @@ ode_data_avg = mean(compositions_all, dims=1)
 
 
 loss_values = Float64[]
-callback = function (p, l, pred; doplot = false)
+callback = function (state::Optimization.OptimizationState, loss_value::Float64; doplot = false)
+    p = state.u
+    l, pred = loss_neuralode(p)
     println(l)
-    push!(loss_values, l)
-    # plot current prediction against data
     if doplot
         pred_avg = mean(pred, dims=1)
         #pred_avg = reshape(pred_avg, (3, 21))
@@ -103,13 +99,13 @@ callback = function (p, l, pred; doplot = false)
     return false
 end
 
-pinit = ComponentArray(p)
-callback(pinit, loss_neuralode(compositions_all, pinit)...)
+pinit = ComponentArray(u)
+#callback(pinit, loss_neuralode(compositions_all, pinit)...)
 
 adtype = Optimization.AutoEnzyme(; mode=set_runtime_activity(Reverse))
 
-optf = Optimization.OptimizationFunction((p,_) -> loss_neuralode(compositions_all, p), adtype)
+optf = Optimization.OptimizationFunction((x,_) -> loss_neuralode(x), adtype)
 optprob = Optimization.OptimizationProblem(optf, pinit)
 
 result_neuralode = Optimization.solve(
-    optprob, OptimizationOptimisers.Adam(0.02); callback = callback, maxiters = 50)
+    optprob, OptimizationOptimisers.Adam(0.02); callback = callback, maxiters = 5)
