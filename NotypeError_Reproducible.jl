@@ -65,21 +65,6 @@ nn = Chain(
 
 u, st = Lux.setup(rng, nn)
 
-function convert_to_float64(x)
-    if isa(x, AbstractArray)
-        return Float64.(x)
-    elseif isa(x, NamedTuple)
-        return NamedTuple{keys(x)}(convert_to_float64.(values(x)))
-    elseif isa(x, Dict)
-        return Dict(k => convert_to_float64(v) for (k, v) in x)
-    else
-        return x
-    end
-end
-
-# Convert weights to Float64
-u = convert_to_float64(u)
-
 
 function predict_neuralode(u)
     # Get parameters from the neural network
@@ -108,21 +93,6 @@ function loss_neuralode(u)
     return loss, pred
 end
 
-"""
-function loss!(loss, ans, pinit)
-    loss .= loss_neuralode(ans, pinit)[1]
-    return nothing
-end
-
-loss, pred = loss_neuralode(ans, u)
-dloss = zero(loss)
-dp = make_zero(u)
-dloss[1] = 1.0
-
-#Enzyme.autodiff(Reverse, loss!, Duplicated(loss, dloss), Const(ans), Duplicated(u, dp))
-Enzyme.autodiff(set_runtime_activity(Reverse), Const(loss!), Duplicated(loss, dloss), Const(ans), Duplicated(u, dp))
-#Enzyme.autodiff(set_runtime_activity(Reverse), Const(loss_neuralode), Duplicated(loss, dloss), Const(ans), Duplicated(u, dp))
-"""
 loss_values = []
 predictions = []
 
